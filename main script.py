@@ -26,7 +26,7 @@ from wordcloud import WordCloud, STOPWORDS
 url = "https://ar.linkedin.com/jobs/search?keywords=Economia&location=Argentina&locationId=&geoId=100446943&f_TPR=&f_PP=103813819&position=1&pageNum=0"
 
 #Abre Chrome
-s = Service("C:/Users/tomas1608/Documents/Linkedin project/chromedriver_win32/chromedriver.exe")
+s = Service("PATH al chromedriver.exe")
 driver = webdriver.Chrome(service = s)
 
 #Ir al URL
@@ -53,13 +53,13 @@ while i <= ((y+100)/25):
     driver.execute_script("window.scrollTo(0,document.body.scrollHeight);")
     time.sleep(3)
     i=i+1
-    #Debemos ahora configurar que se ejecute el Ver mas trabajos una vez llegue al final
+    #Debemos ahora configurar que se ejecute el botón "Ver mas trabajos" una vez llegue al final de la hoja
     try:
         send=driver.find_element(By.XPATH, "//button[@aria-label='Ver más empleos']")
         driver.execute_script("arguments[0].click();", send)
         time.sleep(4)
         
-        #Que pasa en la pagina final, que no va a encontrar ese boton
+        #En la página final, no estará ese botón
     except:
         pass
         time.sleep(4)
@@ -85,13 +85,6 @@ try:
             horario.append(hora)
         else:
             continue
-            
-        #for j in filtros:
-            #if j in job:
-                #continue
-            #else:
-                #companyname.append(company)
-                #jobtitle.append(job)
 
 except IndexError:
     print("Done")
@@ -103,7 +96,15 @@ titlefinal=pd.DataFrame(jobtitle, columns=["Job"])
 
 df=companyfinal.join(titlefinal)
 
-df.to_csv("C:/Users/tomas1608/Documents/Linkedin project/linkedin1.csv")
+#Tener la fecha como "XX of month" para titulo de graficos y de csv
+
+hoy=dt.datetime.now()
+
+fecha=str(hoy.day)+" of "+ hoy.strftime("%B")
+
+#Guardar df
+
+df.to_csv("PATH/Ofertas laborales al {}".format(fecha))
 
 # Para ver cual es la empresa que más demanda
 
@@ -113,17 +114,15 @@ subset=subset.sort_values("Job",ascending=False).head(15)
 
 subset=subset.reset_index()
 
+#Cambio de nombre para mejorar la visualización
 for i in range(15):
     if subset["company"][i]=="Consejo Profesional de Ciencias Económicas de la Ciudad Autónoma de Buenos Aires":
         subset["company"][i]="Consejo de Ciencias Económicas CABA"
     else:
         continue
     
-## Grafico de las empresas que más piden
+## Grafico de las empresas que más demandan empleo
 
-hoy=dt.datetime.now()
-
-fecha=str(hoy.day)+" of "+ hoy.strftime("%B")
 
 #"indianred", "darksalmon", "lightcoral", navajowhite
 colors=["darkred", "mediumvioletred","orchid", "sandybrown", "lightpink" , "khaki" , "orange", "gold", "lightseagreen", "mediumaquamarine", "lawngreen", "palegreen", "powderblue", "dimgray","lightgray"]
@@ -137,9 +136,7 @@ fig.update_xaxes(showgrid=True, linecolor="#444", gridcolor="Lightgrey", title="
 
 fig.update_layout(font_family="Serif", font_size=13, title="<b> Companies by amount of job offers for Economists in Linkedin </b><br>Updated to {}<br></br>".format(fecha))
 
-fig.write_image("C:/Users/tomas1608/Documents/Linkedin project/empleadores.jpeg")
-
-empleadores_path="C:/Users/tomas1608/Documents/Linkedin project/empleadores.jpeg"
+fig.write_image("PATH/empleadores.jpeg")
 
 print("Chart de empleadores hecho")
 
@@ -170,9 +167,7 @@ fig.update_xaxes(showgrid=True, linecolor="#444", gridcolor="Lightgrey", title="
 
 fig.update_layout(font_family="Serif", font_size=15, title="<b>Job offers for Economists in LinkedIn by seniority</b><br>Updated to {}</br>".format(fecha)) 
 
-fig.write_image("C:/Users/tomas1608/Documents/Linkedin project/seniority.jpeg")
-
-seniority_path="C:/Users/tomas1608/Documents/Linkedin project/seniority.jpeg"
+fig.write_image("PATH/seniority.jpeg")
 
 print("Gráfico de seniority hecho")
 #Nube de palabras
@@ -205,9 +200,7 @@ plt.imshow(wc)
 plt.axis("off")
 plt.tight_layout(pad = 0)
  
-plt.savefig("C:/Users/tomas1608/Documents/Linkedin project/nube.jpeg")
-
-nube_path="C:/Users/tomas1608/Documents/Linkedin project/nube.jpeg"
+plt.savefig("PATH/nube.jpeg")
 
 print("Gráfico de Nube hecho")
 
@@ -217,13 +210,13 @@ lista2=[]
 
 filtros2=["desarrollador","scrum","medico", "developer","arquitecto", "electricistas", "oficial-y-medio-oficial", "ecografista",
        "plomero", "oficial-de-mantenimiento", "guardia", "software", "gases-medicinales", "traductor", "sap-hr", "cadena-internacional-de-bares","ingeniero-a-de-ascensores", "devops","médicos", "médico"]
-#No se bien por que algunas ofertas no pertenecen a la clase base card full link, por lo que no me las trae cuando traigo todos los elementos
+#Algunas ofertas no pertenecen a la clase base card full link, por lo que no las trae cuando traigo todos los elementos by CLASS.NAME
 
-#La diferencia (no se HTML) es que algunos tienen el /div/ y otros no
+#La diferencia es que algunos tienen el /div/ y otros no
 
 #Entonces, vamos a buscarlos por Xpath
 for i in range(1,y+1):
-    #Ponemos un try porque si le metemos un Xpath con div a un elemento que no tiene div en el path, se rompe
+    #Ponemos un try porque si encuentra un elemento cuyo Xpath no tiene "div" no traeria su url
         try:
             #Aquellos que aparece el div, el Xpath queda asi
             a=driver.find_elements(By.XPATH, "//*[@id='main-content']/section[2]/ul/li[{}]/div/a".format(i))
@@ -234,7 +227,7 @@ for i in range(1,y+1):
             else:
                 continue
         except Exception as e:
-            #Aquellos que no, queda asi
+            #Pasamos como excepcion a aquellos que no tienen el "div"
             a=driver.find_elements(By.XPATH, "//*[@id='main-content']/section[2]/ul/li[{}]/a".format(i))
             link=a[0].get_attribute("href")
             if all(x not in link for x in filtros2):
@@ -244,6 +237,7 @@ for i in range(1,y+1):
                 continue
 
 #Scrapear las skills mas pedidas
+
 lista=[]
 
 for i in range(len(lista2)+10):
@@ -263,7 +257,7 @@ for i in range(len(lista2)+10):
 
 sql=sum('sql' in s.lower() for s in lista)
 excel=sum('excel' in s.lower() for s in lista)
-python=sum('python' in s.lower() for s in lista) +sum('phyton' in s.lower() for s in lista)
+python=sum('python' in s.lower() for s in lista) +sum('phyton' in s.lower() for s in lista) #Typo bastante comun
 tableau=sum('tableau' in s.lower() for s in lista)
 word=sum('office' in s.lower() for s in lista)
 power=sum("power bi" in s.lower() for s in lista) + sum("powerbi" in s.lower() for s in lista)
@@ -279,6 +273,8 @@ data1=pd.DataFrame(data.items(), columns=["Skill", "Count"])
 
 colores=["slateblue", "seagreen", "orchid", "yellow", "mediumspringgreen", "orange", "crimson", "powderblue", "peru", "crimson"]
 
+#Grafico skills mas demandadas
+
 fig=go.Figure([go.Bar(x=data1["Skill"], y=data1["Count"],marker_color=colores)])
 
 fig.update_layout(plot_bgcolor = "white")
@@ -289,8 +285,6 @@ fig.update_xaxes(showgrid=True, gridcolor="#eee", linecolor="#444", title="Skill
 
 fig.update_layout(title="<b>Most demanded skills for economists in LinkedIn</b><br>Updated to {}</br>".format(fecha), font_family="Serif", font_size=15)
 
-fig.write_image("C:/Users/tomas1608/Documents/Linkedin project/skills.jpeg")
-
-skills_path="C:/Users/tomas1608/Documents/Linkedin project/skills.jpeg"
+fig.write_image("PATH/skills.jpeg")
 
 print("Gráfico de skills hecho")
